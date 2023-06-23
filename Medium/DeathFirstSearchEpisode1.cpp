@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <iostream>
 #include <list>
-#include <queue>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -22,37 +21,58 @@ public:
 
   void AddEdge(int v, int w) { this->adjacencyVector[v].push_back(w); }
 
-  std::tuple<int, int> BFS(int source, int gatewayNode) {
+  bool BFS(int source, int gatewayNode, std::tuple<int, int> &tuple) {
 
-    std::queue<int> queue;
-    queue.push(source);
+    std::vector<int> visitedNodes;
 
+    std::list<int> queue;
+    queue.push_back(source);
     while (!queue.empty()) {
 
       int current = queue.front();
-      queue.pop();
+      queue.pop_front();
 
-      std::vector<int> &currentChilds = this->adjacencyVector[current];
-      for (auto it = currentChilds.begin(); it != currentChilds.end();) {
-        int childNode = currentChilds[*it];
+      visitedNodes.push_back(current);
 
-        queue.push(childNode);
+      std::vector<int> currentChilds = this->adjacencyVector[current];
+
+      for (int i = 0; i < currentChilds.size(); ++i) {
+        int childNode = currentChilds[i];
+
+        // Did we already visit this node ?
+        if (std::find(visitedNodes.begin(), visitedNodes.end(), childNode) !=
+            visitedNodes.end()) {
+          continue;
+        }
+
+        visitedNodes.push_back(childNode);
+
         if (childNode == gatewayNode) {
 
-          it = currentChilds.erase(it);
-
-          // cout << current << " " << linkNode;
-          return std::make_tuple(current, childNode);
-
-          queue = {};
-          break;
-        } else {
-          ++it;
+          tuple = {current, childNode};
+          return true;
         }
+
+        queue.push_back(childNode);
       }
     }
-    return std::make_tuple(0, 0);
-  }
+
+    // If we didn't find a link between gateway and a node
+    // try checking from gateway to bobnet current node
+    // because star validations has links from gateways.
+    std::vector<int> gatewayChilds = this->adjacencyVector[gatewayNode];
+    if (std::find(gatewayChilds.begin(), gatewayChilds.end(), source) !=
+        gatewayChilds.end()) {
+            
+      tuple = {gatewayNode, source};
+      return true;
+    }
+
+    // If we didn't find anything, just cut 0,1 because its always valid in all
+    // cases.
+    tuple = {0, 1};
+    return false;
+  };
 };
 /**
  * Auto-generated code below aims at helping you parse
@@ -61,12 +81,14 @@ public:
 
 int main() {
   int n; // the total number of nodes in the level, including the gateways
-  Graph graph(n);
 
   int l; // the number of links
   int e; // the number of exit gateways
   cin >> n >> l >> e;
   cin.ignore();
+
+  Graph graph(n);
+
   for (int i = 0; i < l; i++) {
     int n1; // N1 and N2 defines a link between these nodes
     int n2;
@@ -92,12 +114,16 @@ int main() {
     cin >> si;
     cin.ignore();
 
-    const auto foundGateway =
-        std::lower_bound(gatewayNodes.begin(), gatewayNodes.end(), si);
+    std::tuple<int, int> nodesLinkToBlock;
+    for (const int gateway : gatewayNodes) {
 
-    auto nodesLinkToBlock = graph.BFS(si, *foundGateway);
+      // If this method returns true, we found a valid link to block.
+      // If not try every gateway because 4th case has multiple gateways.
+      if (graph.BFS(si, gateway, nodesLinkToBlock)) {
+        break;
+      }
+    }
 
-    gatewayNodes.erase(foundGateway);
     // Write an action using cout. DON'T FORGET THE "<< endl"
     // To debug: cerr << "Debug messages..." << endl;
 
