@@ -63,14 +63,15 @@ public:
     std::vector<int> gatewayChilds = this->adjacencyVector[gatewayNode];
     if (std::find(gatewayChilds.begin(), gatewayChilds.end(), source) !=
         gatewayChilds.end()) {
-            
+
       tuple = {gatewayNode, source};
       return true;
     }
 
-    // If we didn't find anything, just cut 0,1 because its always valid in all
-    // cases.
-    tuple = {0, 1};
+    // If we didn't find anything, just cut between gateway node and its one of its links
+    // because this return will only be called when there there is no links to gateway
+    // but links from gateway.
+    tuple = {gatewayNode, gatewayChilds[0]};
     return false;
   };
 };
