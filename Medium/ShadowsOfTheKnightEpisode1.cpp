@@ -41,28 +41,22 @@ int main() {
     cin >> bomb_dir;
     cin.ignore();
 
-    int bombDirX = 0, bombDirY = 0;
-
     if (bomb_dir.find("U") != -1) {
 
-      bombDirY -= 1;
-      bottom = y0 + bombDirY;
+      bottom = y0 - 1;
 
     } else if (bomb_dir.find("D") != -1) {
 
-      bombDirY += 1;
-      top = y0 + bombDirY;
+      top = y0 + 1;
     }
 
     if (bomb_dir.find("R") != -1) {
 
-      bombDirX += 1;
-      left = x0 + bombDirX;
+      left = x0 + 1;
 
     } else if (bomb_dir.find("L") != -1) {
 
-      bombDirX -= 1;
-      right = x0 + bombDirX;
+      right = x0 + - 1;
 
     }
 
